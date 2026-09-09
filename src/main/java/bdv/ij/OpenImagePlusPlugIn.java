@@ -195,6 +195,22 @@ public class OpenImagePlusPlugIn implements Command
 		final double pw = imp.getCalibration().pixelWidth;
 		final double ph = imp.getCalibration().pixelHeight;
 		final double pd = imp.getCalibration().pixelDepth;
+
+		final double ox = imp.getCalibration().xOrigin;
+		final double oy = imp.getCalibration().yOrigin;
+		final double oz = imp.getCalibration().zOrigin;
+
+		/*
+		 * ImageJ's origin is
+		 * 		physical = scale * (pixel - origin)
+		 * whereas the translation that goes into the affine matrix
+		 * 		physical = scale * pixel + translation
+		 * compute the translations from the origin.
+		 */
+		final double tx = -(pw*ox);
+		final double ty = -(ph*oy);
+		final double tz = -(pd*oz);
+
 		String punit = imp.getCalibration().getUnit();
 		if ( punit == null || punit.isEmpty() )
 			punit = "px";
@@ -268,7 +284,7 @@ public class OpenImagePlusPlugIn implements Command
 
 		// create ViewRegistrations from the images calibration
 		final AffineTransform3D sourceTransform = new AffineTransform3D();
-		sourceTransform.set( pw, 0, 0, 0, 0, ph, 0, 0, 0, 0, pd, 0 );
+		sourceTransform.set( pw, 0, 0, tx, 0, ph, 0, ty, 0, 0, pd, tz );
 		final ArrayList< ViewRegistration > registrations = new ArrayList<>();
 		for ( int t = 0; t < numTimepoints; ++t )
 			for ( int s = 0; s < numSetups; ++s )
